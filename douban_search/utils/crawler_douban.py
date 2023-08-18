@@ -80,6 +80,25 @@ def get_reviews(movie_index) -> str or None:
             yield review.replace('<br>', '\n')
 
 
+def get_movies() -> str or None:
+    index = 0
+    while True:
+        url = f'https://movie.douban.com/top250?start={index}&filter='
+        index += 20
+        html = ask_url(url)
+        soup = BeautifulSoup(html, "html.parser")
+        page_elements = soup.find_all('div', class_='pic')
+        if len(page_elements) == 0:
+            return None
+        pattern = re.compile(r'/subject/(\d+)/"')
+        for element in page_elements:
+            try:
+                movie_id = re.findall(pattern, str(element))[0]
+            except IndexError:
+                continue
+            yield movie_id
+
+
 # 保存评论到文件
 def save_to_file(filename, comment):
     with open(filename, 'a', encoding='utf-8') as file:
@@ -101,5 +120,5 @@ def main():
 
 
 if __name__ == '__main__':
-    a = get_reviews('1291546')
+    a = get_movies()
     print(next(a))
