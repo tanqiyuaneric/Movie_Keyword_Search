@@ -1,0 +1,146 @@
+{% extends 'layout.html' %}
+
+{% block title %}search: {{ name }}{% endblock %}
+{% block style %}
+    <style>
+.card {
+ width: 190px;
+ height: 254px;
+ border-radius: 20px;
+ background: #ffffff;
+ position: relative;
+ padding: 1.8rem;
+ border: 2px solid #c3c6ce;
+ transition: 0.5s ease-out;
+ overflow: visible;
+}
+
+.card-details {
+ color: black;
+ height: 100%;
+ gap: .5em;
+ display: grid;
+ place-content: center;
+}
+
+.text-body {
+ color: rgb(134, 134, 134);
+}
+
+/*Text*/
+.text-title {
+ font-size: 1.5em;
+ font-weight: bold;
+}
+
+label.heart {
+    background-color: white;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 15px 10px 10px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 10px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
+    color: black;
+}
+
+input.heart {
+    display: none;
+}
+
+input.heart:checked + label svg {
+    fill: hsl(0deg 100% 50%);
+    stroke: hsl(0deg 100% 50%);
+    animation: heartButton 1s;
+}
+
+@keyframes heartButton {
+    0% {
+        transform: scale(1);
+    }
+
+    25% {
+        transform: scale(1.3);
+    }
+
+    50% {
+        transform: scale(1);
+    }
+
+    75% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+input.heart + label .action {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+}
+
+input.heart + label .action span {
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 1;
+    grid-row-end: 1;
+    transition: all .5s;
+}
+
+input.heart + label .action span.option-1 {
+    transform: translate(0px, 0%);
+    opacity: 1;
+}
+
+input.heart:checked + label .action span.option-1 {
+    transform: translate(0px, -100%);
+    opacity: 0;
+}
+
+input.heart + label .action span.option-2 {
+    transform: translate(0px, 100%);
+    opacity: 0;
+}
+
+input.heart:checked + label .action span.option-2 {
+    transform: translate(0px, 0%);
+    opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+    <div style="margin-top: 50px; margin-bottom: 30px">
+        <form method="get">
+            <div class="container-fluid">
+                <div class="col-sm-offset-3 col-sm-6">
+                    <div class="input-group">
+                  <input type="text" class="form-control" name='name' value="{{ name }}" placeholder="Search any keyword">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><span class='glyphicon glyphicon-search' aria-hidden="true"></span></button>
+                  </span>
+                </div><!-- /input-group -->
+              </div><!-- /.col-lg-6 -->
+            </div><!-- /.row -->
+        </form>
+    </div>
+    <div class="col-xs-8 col-xs-offset-2">
+        {% if success %}
+            {% for i in result %}
+                <div class="card col-sm-1" style="margin: 3px;">
+                    <div class="card-details">
+                    <a href='/keyword?keyword={{ i }}' style="color: #0f0f0f" class="text-title">{{ i }}</a>
+                    <p class="text-body">{{i.movie_set.all.0}}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <span>No result</span>
+        {% endif %}
+    </div>
+{% endblock %}

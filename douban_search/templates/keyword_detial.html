@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+
+{% block title%}{{ keyword }}{% endblock %}
+{% block content %}
+    <div class="col-sm-8 col-sm-offset-2">
+        <h1 style="margin-bottom: 50px">{{ keyword }}</h1>
+        {% for movie in movies %}
+            <a href="{{movie.url}}">{{ movie }}</a>
+        {% endfor %}
+    </div>
+{% endblock %}
