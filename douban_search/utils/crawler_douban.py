@@ -87,16 +87,24 @@ def get_movies() -> str or None:
         index += 20
         html = ask_url(url)
         soup = BeautifulSoup(html, "html.parser")
-        page_elements = soup.find_all('div', class_='pic')
+        page_elements = soup.find_all('div', class_='hd')
         if len(page_elements) == 0:
             return None
-        pattern = re.compile(r'/subject/(\d+)/"')
+        pattern_id = re.compile(r'/subject/(\d+)/"')
+        pattern_name2 = re.compile(r' / (.*)')
         for element in page_elements:
+            name_soup = BeautifulSoup(str(element), "html.parser")
             try:
-                movie_id = re.findall(pattern, str(element))[0]
+                movie_id = re.findall(pattern_id, str(element))[0]
+                name1 = name_soup.find_all('span', class_='title')[0].getText()
             except IndexError:
                 continue
-            yield movie_id
+            try:
+                name2 = name_soup.find_all('span', class_='title')[1].getText()
+                name2 = re.findall(pattern_name2, name2)[0]
+            except IndexError:
+                name2 = None
+            yield movie_id, name1, name2
 
 
 # 保存评论到文件
@@ -121,4 +129,5 @@ def main():
 
 if __name__ == '__main__':
     a = get_movies()
+    print(next(a))
     print(next(a))
