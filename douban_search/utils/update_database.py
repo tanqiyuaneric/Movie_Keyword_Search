@@ -1,3 +1,4 @@
+from django.db.models import F
 from harvesttext import HarvestText
 from .crawler_douban import get_movies, get_reviews, get_short_comments
 from douban_search.models import Comment, Keyword, Movie
@@ -27,23 +28,29 @@ class Reviews(Data):
 def save_data(data: Data):
     for keyword in data.keywords:
         if len(Keyword.objects.filter(keyword=keyword)) == 0:
-            Keyword(keyword=keyword).save()
+            k = Keyword(keyword=keyword)
+            k.save()
         else:
-            Keyword.objects.filter(keyword=keyword).update(count=Keyword.objects.get(keyword=keyword).count + 1)
+            Keyword.objects.filter(keyword=keyword).update(count=F('count') + 1)
 
     if len(Movie.objects.filter(name1=data.name1)) == 0:
         movie = Movie(name1=data.name1,
                       name2=data.name2,
-                      id=data.movie_id)
+                      id=data.movie_id,
+                      url=f"https://movie.douban.com/subject/{data.movie_id}/")
         movie.save()
-        for keyword in data.keywords:
-            movie.keywords.add(Keyword.objects.get(keyword=keyword))
-        movie.save()
+    else:
+        movie = Movie.objects.get(name1=data.name1)
+
+    for keyword in data.keywords:
+        movie.keywords.add(Keyword.objects.get(keyword=keyword))
+    movie.save()
 
     if len(Comment.objects.filter(text=data.string)) == 0:
         Comment(text=data.string,
                 is_review=True if isinstance(data, Reviews) else False,
-                movie=Movie.objects.get(name1=data.name1)).save()
+                movie=Movie.objects.get(name1=data.name1),
+                ).save()
 
 
 def update_short_comments(num_movies=10, num_comments=10, num_keywords=10):
@@ -68,7 +75,7 @@ def update_reviews(num_movies=10, num_reviews=10, num_keywords=10):
         movie_id, name1, name2 = next(movies)
         if not movies:
             break
-        reviews = review = get_reviews(movie_id)
+        reviews = get_reviews(movie_id)
         for __ in range(num_reviews):
             review = next(reviews)
             if not review:
@@ -79,5 +86,4 @@ def update_reviews(num_movies=10, num_reviews=10, num_keywords=10):
 
 
 if __name__ == '__main__':
-    data = Data('234', ['sdf', 'sdfsd'], '234234', 'asdf', 'asdfa')
-    save_data(data)
+    pass

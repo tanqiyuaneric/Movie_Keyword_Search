@@ -41,5 +41,4 @@ def keyword_search(request):
         success = False
     else:
         success = True
-    print(result[1].movie_set)
     return render(request, 'search.html', {'result': result,  'success': success})
