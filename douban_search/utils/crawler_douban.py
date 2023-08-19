@@ -9,7 +9,7 @@ from harvesttext import HarvestText
 ht = HarvestText()
 
 
-def ask_url(url):
+def ask_url(url: str) -> str:
     head = {
         "User-Agent":
             "Mozilla / 5.0(Windows NT 10.0; Win64; x64) AppleWebKit / 537.36(KHTML, like Gecko) Chrome / "
@@ -39,7 +39,7 @@ def ask_url(url):
     return html
 
 
-def get_short_comments(movie_index) -> str or None:
+def get_short_comments(movie_index: str) -> str or None:
     index = 0
     while True:
         url = f'https://movie.douban.com/subject/{movie_index}/comments?start={index}&limit=20&status=P&sort=new_score'
@@ -58,7 +58,7 @@ def get_short_comments(movie_index) -> str or None:
                         yield comment
 
 
-def get_reviews(movie_index) -> str or None:
+def get_reviews(movie_index:str) -> str or None:
     index = 0
     while True:
         url = f'https://movie.douban.com/subject/{movie_index}/reviews?start={index}'
