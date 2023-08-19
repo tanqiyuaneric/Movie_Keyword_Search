@@ -56,13 +56,15 @@ def save_data(data: Data):
 def update_short_comments(num_movies=10, num_comments=10, num_keywords=10):
     movies = get_movies()
     for _ in range(num_movies):
-        movie_id, name1, name2 = next(movies)
-        if not movies:
+        try:
+            movie_id, name1, name2 = next(movies)
+        except StopIteration:
             break
         comments = get_short_comments(movie_id)
         for __ in range(num_comments):
-            comment = next(comments)
-            if not comment:
+            try:
+                comment = next(comments)
+            except StopIteration:
                 break
             keywords = ht.extract_keywords(comment, num_keywords, method="jieba_tfidf")
             data = Comments(comment, keywords, movie_id, name1, name2)
@@ -72,17 +74,28 @@ def update_short_comments(num_movies=10, num_comments=10, num_keywords=10):
 def update_reviews(num_movies=10, num_reviews=10, num_keywords=10):
     movies = get_movies()
     for _ in range(num_movies):
-        movie_id, name1, name2 = next(movies)
-        if not movies:
+        try:
+            movie_id, name1, name2 = next(movies)
+        except StopIteration:
             break
         reviews = get_reviews(movie_id)
         for __ in range(num_reviews):
-            review = next(reviews)
-            if not review:
+            try:
+                review = next(reviews)
+            except StopIteration:
                 break
             keywords = ht.extract_keywords(review, num_keywords, method="jieba_tfidf")
             data = Reviews(review, keywords, movie_id, name1, name2)
             save_data(data)
+
+
+def update_emotions():
+    comments = Comment.objects.all()
+
+
+def main():
+    update_short_comments(num_comments=50000, num_movies=250, num_keywords=10)
+    update_reviews(num_reviews=500, num_movies=250, num_keywords=20)
 
 
 if __name__ == '__main__':

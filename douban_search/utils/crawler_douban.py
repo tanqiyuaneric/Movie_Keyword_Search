@@ -26,6 +26,7 @@ def ask_url(url: str) -> str:
             '__utmb=223695111.0.10.1692284317; __utmz=223695111.1692284317.4.2.utmcsr=accounts.douban.com|utmccn=('
             'referral)|utmcmd=referral|utmcct=/; push_noty_num=0; push_doumail_num=0'
     }
+    print(f'getting url {url}')
     request = urllib.request.Request(url, headers=head)
     html = ""
     try:

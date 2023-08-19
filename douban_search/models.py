@@ -4,6 +4,8 @@ from django.db import models
 # Create your models here.
 class Keyword(models.Model):
     keyword = models.CharField(max_length=250)
+    keyword2 = models.CharField(max_length=250, null=True)
+    emotion = models.FloatField(null=True)
     count = models.IntegerField(default=1)
 
     def __str__(self):
@@ -25,7 +27,7 @@ class Movie(models.Model):
 class Comment(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.PROTECT)
     text = models.TextField()
-    emotion = models.FloatField()
+    emotion = models.FloatField(null=True)
     is_review = models.BooleanField(default=False)
 
     def __str__(self):
