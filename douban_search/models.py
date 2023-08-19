@@ -25,6 +25,7 @@ class Movie(models.Model):
 class Comment(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.PROTECT)
     text = models.TextField()
+    emotion = models.FloatField()
     is_review = models.BooleanField(default=False)
 
     def __str__(self):
