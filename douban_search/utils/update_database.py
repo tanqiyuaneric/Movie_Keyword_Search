@@ -91,6 +91,18 @@ def update_reviews(num_movies=10, num_reviews=10, num_keywords=10):
 
 def update_emotions():
     comments = Comment.objects.all()
+    docs = [i.string for i in comments]
+    ht.build_sent_dict(docs, min_times=1, scale="+-1")
+    for comment in comments:
+        comment.emotion = ht.analyse_sent(comment.text)
+        comment.save()
+
+
+def clean_comments():
+    comments = Comment.objects.all()
+    for comment in comments:
+        comment.text = ht.clean_text(comment.text, norm_html=True)
+        comment.save()
 
 
 def main():
