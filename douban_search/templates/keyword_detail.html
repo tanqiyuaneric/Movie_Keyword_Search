@@ -5,7 +5,8 @@
     <div class="col-sm-8 col-sm-offset-2">
         <h1 style="margin-bottom: 50px">{{ keyword }}</h1>
         {% for movie in movies %}
-            <a href="{{movie.url}}">{{ movie }}</a>
+            <a href="/movie?name={{ movie }}">{{ movie }}</a>
+            <br>
         {% endfor %}
     </div>
 {% endblock %}

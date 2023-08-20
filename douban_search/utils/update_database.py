@@ -2,6 +2,9 @@ from django.db.models import F
 from harvesttext import HarvestText
 from .crawler_douban import get_movies, get_reviews, get_short_comments
 from douban_search.models import Comment, Keyword, Movie
+import concurrent.futures
+from functools import partial
+from tqdm import tqdm
 
 ht = HarvestText()
 
@@ -47,7 +50,7 @@ def save_data(data: Data):
     movie.save()
 
     if len(Comment.objects.filter(text=data.string)) == 0:
-        Comment(text=data.string,
+        Comment(text=ht.clean_text(data.string, norm_html=True),
                 is_review=True if isinstance(data, Reviews) else False,
                 movie=Movie.objects.get(name1=data.name1),
                 ).save()
@@ -89,13 +92,53 @@ def update_reviews(num_movies=10, num_reviews=10, num_keywords=10):
             save_data(data)
 
 
+def add_emotion_comment(comment):
+    emotion = ht.analyse_sent(comment.text)
+    comment.emotion = emotion
+    comment.save()
+
+
+def add_emotion_keyword(keyword, sent_dict):
+    try:
+        emotion = sent_dict[keyword.keyword]
+        keyword.emotion = emotion
+        keyword.save()
+    except KeyError as e:
+        pass
+
+
 def update_emotions():
     comments = Comment.objects.all()
-    docs = [i.string for i in comments]
-    ht.build_sent_dict(docs, min_times=1, scale="+-1")
-    for comment in comments:
-        comment.emotion = ht.analyse_sent(comment.text)
-        comment.save()
+    docs = [i.text for i in comments]
+    sent_dict = ht.build_sent_dict(docs, min_times=1, scale="+-1")
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        process_comment_partial = partial(add_emotion_comment)
+
+        # Use tqdm to create a progress bar
+        with tqdm(total=len(comments)) as pbar:
+            futures = []
+            for comment in comments:
+                future = executor.submit(process_comment_partial, comment)
+                future.add_done_callback(lambda p: pbar.update())  # Update progress bar on callback
+                futures.append(future)
+
+            # Wait for all tasks to complete
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+
+        keywords = Keyword.objects.all()
+        process_keyword_partial = partial(add_emotion_keyword)
+        with tqdm(total=len(keywords)) as pbar:
+            futures = []
+            for keyword in keywords:
+                future = executor.submit(process_keyword_partial, keyword, sent_dict)
+                future.add_done_callback(lambda p: pbar.update())  # Update progress bar on callback
+                futures.append(future)
+
+            # Wait for all tasks to complete
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
 
 
 def clean_comments():
@@ -106,8 +149,8 @@ def clean_comments():
 
 
 def main():
-    update_short_comments(num_comments=50000, num_movies=250, num_keywords=10)
-    update_reviews(num_reviews=500, num_movies=250, num_keywords=20)
+    update_short_comments(num_comments=20, num_movies=10, num_keywords=10)
+    update_reviews(num_reviews=10, num_movies=10, num_keywords=20)
 
 
 if __name__ == '__main__':

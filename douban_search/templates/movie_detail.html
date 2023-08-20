@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% load i18n %}
+
+{% block title%}{{ movie }}{% endblock %}
+{% block content %}
+    <div class="col-sm-8 col-sm-offset-2">
+        <h1 style="margin-bottom: 50px">{{ movie }}</h1>
+        <a href="{{ movie.url }}">{% translate 'view in Douban: ' %}{{ movie.url }}</a>
+        <hr>
+        {% for keyword in keywords %}
+            <a href="/keyword?keyword={{ keyword }}">{{ keyword }}({{ keyword.count }})</a>
+            <br>
+        {% endfor %}
+    </div>
+{% endblock %}

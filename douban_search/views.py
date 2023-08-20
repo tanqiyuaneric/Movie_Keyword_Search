@@ -18,18 +18,16 @@ def keyword_detail(request):
     except Keyword.DoesNotExist:
         return HttpResponse(_('not found'))
     movies = Movie.objects.filter(keywords__keyword__contains=keyword)
-    return render(request, 'keyword_detial.html', {'keyword': keyword, 'movies': movies})
+    return render(request, 'keyword_detail.html', {'keyword': keyword, 'movies': movies})
 
 
 def movie_detail(request):
     try:
-        movie = Movie.objects.get(name=request.GET.get('name', ''))
+        movie = Movie.objects.get(name1=request.GET.get('name', ''))
     except Keyword.DoesNotExist:
-        return HttpResponse(_('无法找到'))
-    keywords = Keyword.objects.get(keyword=movie.keywords)
-    name = movie.name
-    url = movie.url
-    return render(request, 'movie_detial.html', {'keywords': keywords, 'name': name, 'url': url})
+        return HttpResponse(_('not found'))
+    keywords = movie.keywords.all().order_by('-count')[:20]
+    return render(request, 'movie_detail.html', {'movie': movie, 'keywords': keywords})
 
 
 def keyword_search(request):
