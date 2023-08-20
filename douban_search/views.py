@@ -9,7 +9,8 @@ from douban_search.models import Keyword, Movie
 
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
+    keywords = Keyword.objects.all().order_by('-count')[:10]
+    return render(request, 'index.html', {'keywords': keywords})
 
 
 def keyword_detail(request):

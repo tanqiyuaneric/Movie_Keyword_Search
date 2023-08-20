@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
+{% load i18n %}
 
-{% block title %}                                                                                                                                          {% endblock %}
+{% block title%}{% translate 'Keyword movie search' %}{% endblock %}
 
 {% block content %}
 <div style="margin-top: 50px; margin-bottom: 50px">
@@ -8,10 +9,10 @@
         <div class="container-fluid">
             <div class="col-xs-offset-3 col-xs-6">
                 <div class="input-group">
-              <input type="text" class="form-control" name='name' value="{{ name }}" placeholder="搜索">
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="submit"><span class='glyphicon glyphicon-search' aria-hidden="true"></span></button>
-              </span>
+                    <input type="text" class="form-control" name='name' value="{{ name }}" placeholder={% translate 'search any keyword' %}>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit"><span class='glyphicon glyphicon-search' aria-hidden="true"></span></button>
+                    </span>
             </div><!-- /input-group -->
           </div><!-- /.col-lg-6 -->
         </div><!-- /.row -->
@@ -19,5 +20,11 @@
 </div>
 <div class="col-sm-offset-2 col-sm-8" style="margin-bottom: 200px">
 
+{% translate 'Top 10 Keywords:' %}
+<br>
+{% for keyword in keywords %}
+            <a href="/keyword?keyword={{ keyword }}">{{ keyword }}({{ keyword.count }})</a>
+            <br>
+        {% endfor %}
 </div>
 {% endblock %}
