@@ -1,7 +1,10 @@
+import threading
+import torch
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from django.db.models import F
 from harvesttext import HarvestText
 from .crawler_douban import get_movies, get_reviews, get_short_comments
-from douban_search.models import Comment, Keyword, Movie
+from douban_search.models import Comment, Keyword, Movie, Keyword_Info
 import concurrent.futures
 from functools import partial
 from tqdm import tqdm
@@ -115,7 +118,6 @@ def update_emotions():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         process_comment_partial = partial(add_emotion_comment)
 
-        # Use tqdm to create a progress bar
         with tqdm(total=len(comments)) as pbar:
             futures = []
             for comment in comments:
@@ -123,7 +125,6 @@ def update_emotions():
                 future.add_done_callback(lambda p: pbar.update())  # Update progress bar on callback
                 futures.append(future)
 
-            # Wait for all tasks to complete
             for future in concurrent.futures.as_completed(futures):
                 future.result()
 
@@ -136,7 +137,6 @@ def update_emotions():
                 future.add_done_callback(lambda p: pbar.update())  # Update progress bar on callback
                 futures.append(future)
 
-            # Wait for all tasks to complete
             for future in concurrent.futures.as_completed(futures):
                 future.result()
 
@@ -148,10 +148,97 @@ def clean_comments():
         comment.save()
 
 
+def update_counts(review_keywords=15, comment_keywords=10):
+    comments = Comment.objects.all()
+    total_comments = len(comments)
+    with tqdm(total=total_comments, desc="Processing Comments") as pbar:
+        for comment in comments:
+            movie = comment.movie
+            keywords = ht.extract_keywords(comment.text,
+                                           review_keywords if comment.is_review else comment_keywords,
+                                           method="jieba_tfidf")
+            for keyword in keywords:
+                keyword = Keyword.objects.get(keyword=keyword)
+                try:
+                    info = Keyword_Info.objects.filter(keyword=keyword, movie=movie)[0]
+                    info.count += 1
+                    info.save()
+                except IndexError:
+                    info = Keyword_Info(movie=movie, keyword=keyword)
+                    info.save()
+            pbar.update(1)
+
+
+def translate_chinese_to_english(keyword: Keyword):
+    model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-zh-en")
+    tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-zh-en")
+
+    model.to('cuda')
+    inputs = tokenizer.encode(keyword.keyword, return_tensors="pt")
+
+    inputs = inputs.to('cuda')
+
+    with torch.no_grad():
+        translation = model.generate(inputs, max_length=128, num_beams=4, early_stopping=True)
+
+    translated_text = tokenizer.decode(translation[0], skip_special_tokens=True)
+
+    keyword.keyword2 = translated_text
+    keyword.save()
+
+
+def translate_keywords():
+    texts = Keyword.objects.filter(keyword2__isnull=True).order_by('-count')
+
+    with tqdm(total=len(texts)) as pbar:
+        index = 0
+        while index < len(texts):
+            i = 0
+            chinese_texts = []
+            threads = []
+            while i < 20:
+                try:
+                    t = texts[index]
+                except IndexError:
+                    pass
+                index += 1
+                if t.keyword2 is None:
+                    chinese_texts.append(t)
+                    t.keyword2 = 'processing'
+                    t.save()
+                    i += 1
+
+                pbar.update(1)
+
+            for text in chinese_texts:
+                thread = threading.Thread(target=translate_chinese_to_english, args=(text,))
+                threads.append(thread)
+                thread.start()
+
+                # 等待所有线程完成
+
+                for thread in threads:
+                    thread.join()
+
+
+def clear_table_data(model):
+    try:
+        model.objects.all().delete()
+        print("数据表数据已成功清除。")
+    except Exception as e:
+        print("清除数据时出现错误：", str(e))
+
+
 def main():
+    clear_table_data(Keyword_Info)
+    clear_table_data(Keyword)
+    clear_table_data(Movie)
+    clear_table_data(Comment)
     update_short_comments(num_comments=20, num_movies=10, num_keywords=10)
     update_reviews(num_reviews=10, num_movies=10, num_keywords=20)
+    update_counts()
+    translate_keywords()
 
 
 if __name__ == '__main__':
-    pass
+    main()

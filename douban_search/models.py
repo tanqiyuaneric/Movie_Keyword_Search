@@ -1,7 +1,6 @@
 from django.db import models
 
 
-# Create your models here.
 class Keyword(models.Model):
     keyword = models.CharField(max_length=250)
     keyword2 = models.CharField(max_length=250, null=True)
@@ -32,3 +31,12 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text[:5]+'...'
+
+
+class Keyword_Info(models.Model):
+    keyword = models.ForeignKey(Keyword, on_delete=models.PROTECT)
+    movie = models.ForeignKey(Movie, on_delete=models.PROTECT)
+    count = models.IntegerField(default=1)
+
+    def __str__(self):
+        return str(self.keyword)

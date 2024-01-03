@@ -2,3 +2,5 @@ Django~=4.2.4
 beautifulsoup4~=4.12.2
 harvesttext~=0.8.1.8
 tqdm~=4.66.1
+torch~=2.0.1
+transformers~=4.31.0

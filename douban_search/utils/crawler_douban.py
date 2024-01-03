@@ -2,6 +2,8 @@ import json
 import urllib
 import urllib.error
 import urllib.request
+from json import JSONDecodeError
+
 from bs4 import BeautifulSoup
 import re
 from harvesttext import HarvestText
@@ -75,8 +77,11 @@ def get_reviews(movie_index:str) -> str or None:
                 review_id = re.findall(pattern, element.get('id'))[0]
             except IndexError:
                 continue
-            json_data = ask_url(f'https://movie.douban.com/j/review/{review_id}/full')
-            data = json.loads(json_data)
+            try:
+                json_data = ask_url(f'https://movie.douban.com/j/review/{review_id}/full')
+                data = json.loads(json_data)
+            except JSONDecodeError:
+                continue
             review = data['html']
             yield review.replace('<br>', '\n')
 
@@ -108,7 +113,6 @@ def get_movies() -> str or None:
             yield movie_id, name1, name2
 
 
-# 保存评论到文件
 def save_to_file(filename, comment):
     with open(filename, 'a', encoding='utf-8') as file:
         try:

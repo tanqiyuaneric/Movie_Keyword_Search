@@ -134,8 +134,9 @@ input.heart:checked + label .action span.option-2 {
             {% for i in result %}
                 <div class="card col-sm-1" style="margin: 3px;">
                     <div class="card-details">
-                    <a href='/keyword?keyword={{ i }}' style="color: #0f0f0f" class="text-title">{{ i }}</a>
-                    <p class="text-body">{{i.movie_set.all.0}}</p>
+                    <a href='/keyword?keyword={{ i.keyword.keyword }}' style="color: #0f0f0f" class="text-title">{{ i.keyword }}</a>
+                    <p class="text-body">{{i.movie.0}}<br>{{ i.movie.1 }}<br>{{ i.movie.2 }}</p>
+
                     </div>
                 </div>
             {% endfor %}

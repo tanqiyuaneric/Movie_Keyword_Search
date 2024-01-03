@@ -23,7 +23,7 @@
 {% translate 'Top 10 Keywords:' %}
 <br>
 {% for keyword in keywords %}
-            <a href="/keyword?keyword={{ keyword }}">{{ keyword }}({{ keyword.count }})</a>
+            <a href="/keyword?keyword={{ keyword.keyword }}">{{ keyword }}({{ keyword.count }})</a>
             <br>
         {% endfor %}
 </div>
